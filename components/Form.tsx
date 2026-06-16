@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import CallModal from "./CallModal";
 import { insertMeasurement } from "@/utils/db";
 import { useAuthStore } from "@/stores/useAuthStore";
 import CustomModal from "./Modal";
+import { colors } from "@/utils/theme";
 
 type SurveyFormProps = {
   questions: string[];
@@ -87,33 +89,45 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions, onSubmit }) => {
         return (
           <View key={groupIdx} style={styles.accordionContainer}>
             <TouchableOpacity
-              // disabled={!isActive}
               onPress={() =>
                 isActive
                   ? toggleExpand(groupIdx)
                   : Toast.show({
-                      type: "info", // 'success' | 'error' | 'info'
+                      type: "info",
                       text1: "عدم دسترسی",
                       text2: "این پرسشنامه هم اکنون فعال نیست",
-                      position: "bottom", // 'top' یا 'bottom'
+                      position: "bottom",
                       visibilityTime: 3000,
                     })
               }
               style={[
                 styles.accordionHeader,
-                { backgroundColor: isActive ? "#5ba88a" : "#b0c5be" },
+                { backgroundColor: isActive ? colors.primaryLight : colors.primaryMuted },
               ]}
+              activeOpacity={0.85}
             >
-              <Text className="font-vazir text-white text-center text-xl">
-                سوالات ساعت {hour.start}:00
-              </Text>
+              <View className="flex-row-reverse items-center justify-between px-1">
+                <Ionicons
+                  name={isExpanded ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color="#fff"
+                />
+                <Text className="font-vazir text-white text-center text-lg flex-1">
+                  سوالات ساعت {hour.start}:00
+                </Text>
+                <View
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    isActive ? "bg-white" : "bg-white/40"
+                  }`}
+                />
+              </View>
             </TouchableOpacity>
 
             {isActive && isExpanded && (
               <View style={styles.questionGroup}>
                 {questions.map((question, qIdx) => (
                   <View key={`${hour}-${qIdx}`} style={styles.questionBlock}>
-                    <Text className="text-center text-lg font-vazir">
+                    <Text className="text-right text-base font-vazir-bold text-text leading-7">
                       {question}
                     </Text>
                     <View style={styles.optionsRow}>
@@ -125,6 +139,7 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions, onSubmit }) => {
                             answers[qIdx] === oIdx && styles.selectedOption,
                           ]}
                           onPress={() => handleSelect(qIdx, oIdx)}
+                          activeOpacity={0.8}
                         >
                           <Text
                             style={[
@@ -153,63 +168,52 @@ const SurveyForm: React.FC<SurveyFormProps> = ({ questions, onSubmit }) => {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
-    paddingBottom: 100,
-    position: "relative",
+    paddingBottom: 20,
   },
   accordionContainer: {
-    marginBottom: 20,
+    marginBottom: 14,
   },
   accordionHeader: {
-    padding: 15,
-    borderRadius: 8,
-  },
-  accordionTitle: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "center",
+    padding: 16,
+    borderRadius: 16,
   },
   questionGroup: {
-    marginTop: 10,
-    backgroundColor: "#ededed",
-    borderRadius: 8,
-    padding: 20,
+    marginTop: 8,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   questionBlock: {
     marginBottom: 20,
   },
-  questionText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
   optionsRow: {
-    marginTop: 25,
+    marginTop: 16,
     flexDirection: "column",
-    gap: 10,
+    gap: 8,
   },
   optionButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    marginBottom: 5,
-    borderColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
     borderWidth: 1,
   },
   selectedOption: {
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   optionText: {
-    color: "#333",
+    color: colors.text,
     fontFamily: "Vazir",
     textAlign: "center",
   },
   selectedText: {
-    color: "#fff",
+    color: colors.white,
+    fontFamily: "VazirBold",
   },
-  modalText: { fontSize: 18 },
-  closeText: { marginTop: 10, color: "#007AFF" },
 });
 
 export default SurveyForm;

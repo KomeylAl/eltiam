@@ -1,4 +1,4 @@
-import { View, Text, Modal } from "react-native";
+import { View, Modal, Pressable } from "react-native";
 import React from "react";
 
 interface CustomModalProps {
@@ -9,13 +9,15 @@ interface CustomModalProps {
 
 const CustomModal = ({ children, isOpen, onClose }: CustomModalProps) => {
   return (
-    <Modal
-      visible={isOpen}
-      statusBarTranslucent
-    >
-      <View className="bg-black/80 w-full h-screen p-8 flex-1 items-center justify-center">
-        {children}
-      </View>
+    <Modal visible={isOpen} statusBarTranslucent transparent animationType="fade">
+      <Pressable
+        className="bg-black/60 w-full h-full flex-1 items-center justify-center p-6"
+        onPress={onClose}
+      >
+        <Pressable onPress={(e) => e.stopPropagation()} className="w-full">
+          {children}
+        </Pressable>
+      </Pressable>
     </Modal>
   );
 };

@@ -3,7 +3,6 @@ import { Stack, useRouter, usePathname } from "expo-router";
 import { useEffect } from "react";
 import { useFonts } from "expo-font";
 import {
-  ActivityIndicator,
   Image,
   ImageSourcePropType,
   Text,
@@ -17,7 +16,7 @@ import { initializeNotifications } from "@/lib/notifications";
 import { useSetupNotificationsOnce } from "@/lib/notifications";
 import { initializeDatabase, syncWithServer } from "@/utils/db";
 import { isOnline } from "@/utils/netcheck";
-
+import SplashLoader from "@/components/ui/SplashLoader";
 export default function RootLayout() {
   useSetupNotificationsOnce();
   const { checkAuth, isLoading, token } = useAuthStore();
@@ -41,7 +40,7 @@ export default function RootLayout() {
         if (token) {
           await syncWithServer();
         }
-        await checkAuth();
+        // await checkAuth();
       }
     };
     runCheck();
@@ -53,74 +52,63 @@ export default function RootLayout() {
   //   }
   // }, [token]);
 
-  useEffect(() => {
-    if (!isLoading && !token && pathname !== "/auth") {
-      router.replace("/auth");
-    }
-  }, [isLoading, token, pathname]);
+  // useEffect(() => {
+  //   if (!isLoading && !token && pathname !== "/auth") {
+  //     router.replace("/auth");
+  //   }
+  // }, [isLoading, token, pathname]);
 
-  if (!fontsLoaded || isLoading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
-  }
-
+  // if (!fontsLoaded || isLoading) {
+  //   return <SplashLoader />;
+  // }
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} />
       <Toast
         config={{
           success: ({ text1, text2 }) => (
-            <View
-              style={{
-                padding: 16,
-                backgroundColor: "#4BB543",
-                borderRadius: 8,
-              }}
-            >
-              <Text className="text-white font-vazir-bold text-right">
+            <View className="mx-4 px-4 py-3 bg-white rounded-2xl border-r-4 border-r-green-500 shadow-lg">
+              <Text className="text-green-700 font-vazir-bold text-right text-base">
                 {text1}
               </Text>
-              <Text className="text-white font-vazir text-right">{text2}</Text>
+              {text2 ? (
+                <Text className="text-textMuted font-vazir text-right text-sm mt-1">
+                  {text2}
+                </Text>
+              ) : null}
             </View>
           ),
           error: ({ text1, text2 }) => (
-            <View className="bg-amber-600 p-3 rounded-md">
-              <Text className="text-white font-vazir-bold text-right">
+            <View className="mx-4 px-4 py-3 bg-white rounded-2xl border-r-4 border-r-danger shadow-lg">
+              <Text className="text-danger font-vazir-bold text-right text-base">
                 {text1}
               </Text>
-              <Text className="text-white font-vazir text-right">{text2}</Text>
+              {text2 ? (
+                <Text className="text-textMuted font-vazir text-right text-sm mt-1">
+                  {text2}
+                </Text>
+              ) : null}
             </View>
           ),
           info: ({ text1, text2 }) => (
-            <View
-              style={{
-                padding: 16,
-                backgroundColor: "#4294FF",
-                borderRadius: 8,
-                flexDirection: "row-reverse",
-                alignItems: "center",
-                gap: 20,
-              }}
-            >
+            <View className="mx-4 px-4 py-3 bg-white rounded-2xl border-r-4 border-r-primary flex-row-reverse items-center gap-3 shadow-lg">
               <Image
                 source={icons.info as ImageSourcePropType}
-                style={{ width: 40, height: 40 }}
+                style={{ width: 32, height: 32 }}
               />
-              <View>
-                <Text className="text-white font-vazir-bold text-right">
+              <View className="flex-1">
+                <Text className="text-primary font-vazir-bold text-right text-base">
                   {text1}
                 </Text>
-                <Text className="text-white font-vazir text-right">
-                  {text2}
-                </Text>
+                {text2 ? (
+                  <Text className="text-textMuted font-vazir text-right text-sm mt-1">
+                    {text2}
+                  </Text>
+                ) : null}
               </View>
             </View>
           ),
         }}
-      />
-    </>
+      />    </>
   );
 }

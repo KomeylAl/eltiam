@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
 import StepForm from "./StepperForm";
 import PositiveWordGame from "./WordGame";
@@ -13,6 +14,8 @@ import ThirdForm from "./ThirdForm";
 import { insertIntervention } from "@/utils/db";
 import { useAuthStore } from "@/stores/useAuthStore";
 import CustomModal from "@/components/Modal";
+import Button from "@/components/ui/Button";
+import { colors } from "@/utils/theme";
 
 type InterventionFormProps = {
   questions: string[];
@@ -107,33 +110,45 @@ const InterventionForm: React.FC<InterventionFormProps> = ({
         return (
           <View key={groupIdx} style={styles.accordionContainer}>
             <TouchableOpacity
-              // disabled={!isActive}
               onPress={() =>
                 isActive
                   ? toggleExpand(groupIdx)
                   : Toast.show({
-                      type: "info", // 'success' | 'error' | 'info'
+                      type: "info",
                       text1: "عدم دسترسی",
                       text2: "این پرسشنامه هم اکنون فعال نیست",
-                      position: "bottom", // 'top' یا 'bottom'
+                      position: "bottom",
                       visibilityTime: 3000,
                     })
               }
               style={[
                 styles.accordionHeader,
-                { backgroundColor: isActive ? "#5ba88a" : "#b0c5be" },
+                { backgroundColor: isActive ? colors.primaryLight : colors.primaryMuted },
               ]}
+              activeOpacity={0.85}
             >
-              <Text className="font-vazir text-white text-center text-xl">
-                سوالات ساعت {hour.start}:00
-              </Text>
+              <View className="flex-row-reverse items-center justify-between px-1">
+                <Ionicons
+                  name={isExpanded ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color="#fff"
+                />
+                <Text className="font-vazir text-white text-center text-lg flex-1">
+                  سوالات ساعت {hour.start}:00
+                </Text>
+                <View
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    isActive ? "bg-white" : "bg-white/40"
+                  }`}
+                />
+              </View>
             </TouchableOpacity>
 
             {isActive && isExpanded && (
               <View style={styles.questionGroup}>
                 {questions.map((question, qIdx) => (
                   <View key={`${hour}-${qIdx}`} style={styles.questionBlock}>
-                    <Text className="text-center text-lg font-vazir">
+                    <Text className="text-right text-base font-vazir-bold text-text leading-7">
                       {question}
                     </Text>
                     <View style={styles.optionsRow}>
@@ -145,6 +160,7 @@ const InterventionForm: React.FC<InterventionFormProps> = ({
                             answers[qIdx] === oIdx && styles.selectedOption,
                           ]}
                           onPress={() => handleSelect(qIdx, oIdx)}
+                          activeOpacity={0.8}
                         >
                           <Text
                             style={[
@@ -165,35 +181,29 @@ const InterventionForm: React.FC<InterventionFormProps> = ({
         );
       })}
       <CustomModal isOpen={isVisible} onClose={() => {}}>
-        <View className="w-full min-h-[50%] max-h-[80%] bg-white rounded-lg">
+        <View className="w-full min-h-[50%] max-h-[80%] bg-white rounded-3xl overflow-hidden">
           <StepForm onSubmit={() => setIsVisible(false)} />
         </View>
       </CustomModal>
 
       <CustomModal isOpen={isGameVisible} onClose={() => {}}>
-        <View className={`p-8 bg-white rounded-lg ${isGameStart && "h-4/5"}`}>
+        <View className={`p-6 bg-white rounded-3xl ${isGameStart && "h-4/5"}`}>
           {!isGameStart && (
             <View>
-              <Text className="text-center font-vazir text-xl">
+              <Text className="text-center font-vazir text-lg text-text leading-8">
                 قراره یه بازی کلمات ساده انجام بدیم. حاضری؟
               </Text>
-              <View className="w-full flex flex-row-reverse items-center gap-4 justify-center mt-6">
-                <TouchableOpacity
-                  onPress={() => setIsGameStart(true)}
-                  className="w-1/3 bg-[#5ba88a] p-2 rounded-lg"
-                >
-                  <Text className="text-center text-white font-vazir-bold">
-                    بله
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setIsGameVisible(false)}
-                  className="w-1/3 bg-rose-500 p-2 rounded-lg"
-                >
-                  <Text className="text-center text-white font-vazir-bold">
-                    خیر
-                  </Text>
-                </TouchableOpacity>
+              <View className="w-full flex flex-row-reverse items-center gap-3 justify-center mt-6">
+                <View className="flex-1">
+                  <Button label="بله" onPress={() => setIsGameStart(true)} />
+                </View>
+                <View className="flex-1">
+                  <Button
+                    label="خیر"
+                    onPress={() => setIsGameVisible(false)}
+                    variant="danger"
+                  />
+                </View>
               </View>
             </View>
           )}
@@ -226,63 +236,52 @@ const InterventionForm: React.FC<InterventionFormProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
-    paddingBottom: 100,
-    position: "relative",
+    paddingBottom: 20,
   },
   accordionContainer: {
-    marginBottom: 20,
+    marginBottom: 14,
   },
   accordionHeader: {
-    padding: 15,
-    borderRadius: 8,
-  },
-  accordionTitle: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "center",
+    padding: 16,
+    borderRadius: 16,
   },
   questionGroup: {
-    marginTop: 10,
-    backgroundColor: "#ededed",
-    borderRadius: 8,
-    padding: 20,
+    marginTop: 8,
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   questionBlock: {
     marginBottom: 20,
   },
-  questionText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
   optionsRow: {
-    marginTop: 25,
+    marginTop: 16,
     flexDirection: "column",
-    gap: 10,
+    gap: 8,
   },
   optionButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-    marginBottom: 5,
-    borderColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: colors.surfaceAlt,
+    borderColor: colors.border,
     borderWidth: 1,
   },
   selectedOption: {
-    backgroundColor: "#007AFF",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   optionText: {
-    color: "#333",
+    color: colors.text,
     fontFamily: "Vazir",
     textAlign: "center",
   },
   selectedText: {
-    color: "#fff",
+    color: colors.white,
+    fontFamily: "VazirBold",
   },
-  modalText: { fontSize: 18 },
-  closeText: { marginTop: 10, color: "#007AFF" },
 });
 
 export default InterventionForm;

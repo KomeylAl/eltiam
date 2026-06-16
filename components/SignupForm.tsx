@@ -1,8 +1,9 @@
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { View, Text, TextInput } from "react-native";
 import React, { useState } from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { router } from "expo-router";
 import Toast from "react-native-toast-message";
+import Button from "@/components/ui/Button";
 
 interface SignupFormProps {
   onLoginPressed: () => void;
@@ -48,12 +49,15 @@ const SignupForm = ({ onLoginPressed }: SignupFormProps) => {
     router.replace("/");
   };
 
+  const inputClass =
+    "font-vazir px-4 py-4 text-right border border-white/50 rounded-2xl text-lg text-white bg-white/10";
+
   return (
     <View>
       <Text className="text-white font-vazir-bold text-3xl text-center">
         ثبت نام
       </Text>
-      <Text className="text-white font-vazir text-lg text-center mt-5">
+      <Text className="text-white/90 font-vazir text-base text-center mt-3 leading-7">
         برای ثبت نام اطلاعات خود را به طور کامل وارد کنید
       </Text>
 
@@ -64,8 +68,8 @@ const SignupForm = ({ onLoginPressed }: SignupFormProps) => {
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, name: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className={`${inputClass} mt-6`}
       />
 
       <TextInput
@@ -75,8 +79,8 @@ const SignupForm = ({ onLoginPressed }: SignupFormProps) => {
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, phone: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className={`${inputClass} mt-4`}
       />
 
       <TextInput
@@ -86,49 +90,52 @@ const SignupForm = ({ onLoginPressed }: SignupFormProps) => {
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, national_code: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className={`${inputClass} mt-4`}
       />
 
       <TextInput
         placeholder="رمز عبور"
         keyboardType="visible-password"
+        secureTextEntry
         value={form.password}
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, password: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className={`${inputClass} mt-4`}
       />
 
       <TextInput
         placeholder="تکرار رمز عبور"
         keyboardType="visible-password"
+        secureTextEntry
         value={form.pass_confirm}
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, pass_confirm: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className={`${inputClass} mt-4`}
       />
 
-      <TouchableOpacity
-        className="bg-[#fff] p-4 rounded-lg mt-5"
-        onPress={handleRegister}
-      >
-        <Text className="text-center text-[#469173] font-vazir text-lg">
-          ثبت نام
-        </Text>
-      </TouchableOpacity>
+      <View className="mt-6">
+        <Button
+          label="ثبت نام"
+          onPress={handleRegister}
+          loading={isLoading}
+          disabled={isLoading}
+          variant="light"
+        />
+      </View>
 
-      <TouchableOpacity
-        className="p-4 rounded-lg mt-5"
-        onPress={onLoginPressed}
-      >
-        <Text className="text-center text-white font-vazir text-lg">
-          حساب کاربری دارید؟ وارد شوید
-        </Text>
-      </TouchableOpacity>
+      <View className="mt-3">
+        <Button
+          label="حساب کاربری دارید؟ وارد شوید"
+          onPress={onLoginPressed}
+          variant="ghost"
+          className="py-3"
+        />
+      </View>
     </View>
   );
 };

@@ -1,10 +1,9 @@
 import { useState } from "react";
-
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { View, Text, TextInput } from "react-native";
 import React from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { router } from "expo-router";
 import Toast from "react-native-toast-message";
+import Button from "@/components/ui/Button";
 
 interface LoginFormProps {
   onSignupPressed: () => void;
@@ -38,7 +37,7 @@ const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
       <Text className="text-white font-vazir-bold text-3xl text-center">
         ورود به برنامه
       </Text>
-      <Text className="text-white font-vazir text-lg text-center mt-5">
+      <Text className="text-white/90 font-vazir text-base text-center mt-3 leading-7">
         برای ورود به برنامه شماره تلفن و رمز عبور خود را وارد کنید
       </Text>
 
@@ -49,8 +48,8 @@ const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, phone: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className="font-vazir px-4 py-4 text-right border border-white/50 rounded-2xl mt-6 text-lg text-white bg-white/10"
       />
 
       <TextInput
@@ -61,28 +60,28 @@ const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
         onChangeText={(text: string) =>
           setForm((prev) => ({ ...prev, password: text }))
         }
-        placeholderTextColor={"#d1d5db"}
-        className="font-vazir px-4 py-4 text-right border border-white rounded-lg mt-5 text-lg text-white"
+        placeholderTextColor="#ffffff99"
+        className="font-vazir px-4 py-4 text-right border border-white/50 rounded-2xl mt-4 text-lg text-white bg-white/10"
       />
 
-      <TouchableOpacity
-        className={`p-4 rounded-lg mt-5 ${isLoading ? "bg-white/30" : "bg-white "}`}
-        onPress={handleLogin}
-        disabled={isLoading}
-      >
-        <Text className={`text-center font-vazir text-lg ${isLoading ? "text-white" : "text-[#469173]"}`}>
-          {isLoading ? "در حال ورود" : "ورود"}
-        </Text>
-      </TouchableOpacity>
+      <View className="mt-6">
+        <Button
+          label={isLoading ? "در حال ورود..." : "ورود"}
+          onPress={handleLogin}
+          disabled={isLoading}
+          loading={isLoading}
+          variant="light"
+        />
+      </View>
 
-      <TouchableOpacity
-        className="p-4 rounded-lg mt-5"
-        onPress={onSignupPressed}
-      >
-        <Text className="text-center text-white font-vazir text-lg">
-          حساب کاربری ندارید؟ ثبت نام کنید
-        </Text>
-      </TouchableOpacity>
+      <View className="mt-3">
+        <Button
+          label="حساب کاربری ندارید؟ ثبت نام کنید"
+          onPress={onSignupPressed}
+          variant="ghost"
+          className="py-3"
+        />
+      </View>
     </View>
   );
 };

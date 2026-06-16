@@ -1,7 +1,27 @@
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import React from "react";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { convertDate } from "@/utils/converts";
+import ScreenHeader from "@/components/ui/ScreenHeader";
+import SettingRow from "@/components/ui/SettingRow";
+import { Ionicons } from "@expo/vector-icons";
+
+const ProfileInfoRow = ({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string;
+}) => (
+  <View className="w-full flex-row items-center justify-end gap-3 py-3">
+    <Text className="text-primary text-right font-vazir-bold text-base flex-shrink">
+      {value ?? "—"}
+    </Text>
+    <Text className="text-textMuted text-right font-vazir text-base">
+      {label}
+    </Text>
+  </View>
+);
 
 const Profile = () => {
   const { user, logout } = useAuthStore();
@@ -16,72 +36,52 @@ const Profile = () => {
   const jalaliDate = convertDate(registerDate);
 
   return (
-    <ScrollView className="bg-white text-black" style={{ height: "100%" }}>
-      <View
-        className="w-full bg-[#469173] flex items-center justify-center"
-        style={{ paddingTop: 50, height: 180 }}
-      >
-        <Text className="text-3xl text-white font-vazir-bold">حساب کاربری</Text>
-        <Text className="text-xl text-white font-vazir mt-6">
-          تنظیمات حساب کاربری
-        </Text>
-      </View>
+    <ScrollView
+      className="bg-surface"
+      style={{ flex: 1 }}
+      contentContainerStyle={{ paddingBottom: 120 }}
+    >
+      <ScreenHeader title="حساب کاربری" subtitle="اطلاعات و تنظیمات پروفایل" />
 
-      <View className="mx-5 mt-5 rounded-lg border border-gray-300 p-6 flex-col items-end justify-center gap-6">
-        <View className="w-full flex-row items-center justify-end gap-4">
-          <Text className="text-[#469173] text-right font-vazir-bold text-lg">
+      <View className="mx-5 -mt-2 bg-white rounded-3xl border border-border p-6 shadow-sm">
+        <View className="items-center mb-6">
+          <View className="w-20 h-20 rounded-full bg-surfaceAlt items-center justify-center border-2 border-primary/20">
+            <Ionicons name="person" size={36} color="#469173" />
+          </View>
+          <Text className="text-text font-vazir-bold text-xl mt-3">
             {user?.name}
           </Text>
-          <Text className="text-gray-900 text-right font-vazir-bold text-lg">
-            نام ونام خانوادگی:
-          </Text>
-        </View>
-        <View className="w-full h-[1px] bg-gray-300" />
-        <View className="w-full flex-row items-center justify-end gap-4">
-          <Text className="text-[#469173] text-right font-vazir-bold text-lg">
-            {user?.national_code}
-          </Text>
-          <Text className="text-gray-900 text-right font-vazir-bold text-lg">
-            کد ملی:
-          </Text>
-        </View>
-        <View className="w-full h-[1px] bg-gray-300" />
-        <View className="w-full flex-row items-center justify-end gap-4">
-          <Text className="text-[#469173] text-right font-vazir-bold text-lg">
+          <Text className="text-textMuted font-vazir text-sm mt-1">
             {user?.phone}
           </Text>
-          <Text className="text-gray-900 text-right font-vazir-bold text-lg">
-            شماره تلفن:
-          </Text>
         </View>
-        <View className="w-full h-[1px] bg-gray-300" />
-        <View className="w-full flex-row items-center justify-end gap-4">
-          <Text className="text-[#469173] font-vazir-bold text-lg text-left">
-            {jalaliDate}
-          </Text>
-          <Text className="text-gray-900 text-right font-vazir-bold text-lg">
-            تاریخ عضویت:
-          </Text>
+
+        <View className="border-t border-border pt-2">
+          <ProfileInfoRow label="نام و نام خانوادگی:" value={user?.name} />
+          <View className="h-px bg-border" />
+          <ProfileInfoRow label="کد ملی:" value={user?.national_code} />
+          <View className="h-px bg-border" />
+          <ProfileInfoRow label="شماره تلفن:" value={user?.phone} />
+          <View className="h-px bg-border" />
+          <ProfileInfoRow label="تاریخ عضویت:" value={jalaliDate} />
         </View>
       </View>
 
-      <TouchableOpacity
-        className="bg-white p-4 rounded-lg mt-5 mx-5 border border-[#469173]"
-        // onPress={handleLogout}
-      >
-        <Text className="text-center text-[#469173] font-vazir text-lg">
-          ویرایش اطلاعات
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        className="bg-white p-4 rounded-lg mt-5 mx-5 border border-rose-500"
-        onPress={handleLogout}
-      >
-        <Text className="text-center text-rose-500 font-vazir text-lg">
-          خروج
-        </Text>
-      </TouchableOpacity>
+      <View className="mt-6">
+        <SettingRow
+          label="ویرایش اطلاعات"
+          description="به‌زودی در دسترس خواهد بود"
+          icon="create-outline"
+          onPress={() => {}}
+        />
+        <SettingRow
+          label="خروج از حساب"
+          description="خروج امن از برنامه"
+          icon="log-out-outline"
+          variant="danger"
+          onPress={handleLogout}
+        />
+      </View>
     </ScrollView>
   );
 };
