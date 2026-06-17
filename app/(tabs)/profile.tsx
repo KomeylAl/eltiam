@@ -31,7 +31,7 @@ const Profile = () => {
   };
 
   const registerDate = new Date(
-    user?.created_at ? user?.created_at : Date.now()
+    user?.created_at ? user.created_at : Date.now()
   );
   const jalaliDate = convertDate(registerDate);
 
@@ -59,21 +59,18 @@ const Profile = () => {
         <View className="border-t border-border pt-2">
           <ProfileInfoRow label="نام و نام خانوادگی:" value={user?.name} />
           <View className="h-px bg-border" />
-          <ProfileInfoRow label="کد ملی:" value={user?.national_code} />
-          <View className="h-px bg-border" />
           <ProfileInfoRow label="شماره تلفن:" value={user?.phone} />
+          <View className="h-px bg-border" />
+          <ProfileInfoRow
+            label="شناسه تراپیست:"
+            value={user?.therapist_id ? String(user.therapist_id) : "—"}
+          />
           <View className="h-px bg-border" />
           <ProfileInfoRow label="تاریخ عضویت:" value={jalaliDate} />
         </View>
       </View>
 
       <View className="mt-6">
-        <SettingRow
-          label="ویرایش اطلاعات"
-          description="به‌زودی در دسترس خواهد بود"
-          icon="create-outline"
-          onPress={() => {}}
-        />
         <SettingRow
           label="خروج از حساب"
           description="خروج امن از برنامه"

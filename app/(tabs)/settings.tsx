@@ -15,12 +15,7 @@ const Settings = () => {
   const handlePress = async () => {
     setIsLoading(true);
     if (await isOnline()) {
-      await syncWithServer();
-      Toast.show({
-        type: "success",
-        text1: "موفق",
-        text2: "اطلاعات با سرور همگام‌سازی شد.",
-      });
+      await syncWithServer({ showToast: true });
     } else {
       Toast.show({
         type: "error",

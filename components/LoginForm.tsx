@@ -5,11 +5,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import Toast from "react-native-toast-message";
 import Button from "@/components/ui/Button";
 
-interface LoginFormProps {
-  onSignupPressed: () => void;
-}
-
-const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
+const LoginForm = () => {
   const [form, setForm] = useState({
     phone: "",
     password: "",
@@ -23,7 +19,7 @@ const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
       Toast.show({
         type: "error",
         text1: "خطا!",
-        text2: "لطفا همه فیلد هارا پر کنید",
+        text2: "لطفا همه فیلدها را پر کنید",
       });
       return;
     }
@@ -38,7 +34,7 @@ const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
         ورود به برنامه
       </Text>
       <Text className="text-white/90 font-vazir text-base text-center mt-3 leading-7">
-        برای ورود به برنامه شماره تلفن و رمز عبور خود را وارد کنید
+        شماره تلفن و رمز عبور را که تراپیست به شما داده وارد کنید
       </Text>
 
       <TextInput
@@ -74,14 +70,10 @@ const LoginForm = ({ onSignupPressed }: LoginFormProps) => {
         />
       </View>
 
-      <View className="mt-3">
-        <Button
-          label="حساب کاربری ندارید؟ ثبت نام کنید"
-          onPress={onSignupPressed}
-          variant="ghost"
-          className="py-3"
-        />
-      </View>
+      <Text className="text-white/70 font-vazir text-sm text-center mt-4 leading-6">
+        ثبت‌نام در اپ امکان‌پذیر نیست. در صورت نداشتن حساب، با تراپیست خود تماس
+        بگیرید.
+      </Text>
     </View>
   );
 };

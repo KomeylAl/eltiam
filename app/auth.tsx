@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   View,
   ScrollView,
@@ -10,11 +9,8 @@ import {
 import React from "react";
 import images from "@/utils/images";
 import LoginForm from "@/components/LoginForm";
-import SignupForm from "@/components/SignupForm";
 
 const Auth = () => {
-  const [screen, setScreen] = useState("login");
-
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -33,11 +29,7 @@ const Auth = () => {
         >
           <View className="flex-1 bg-black/35 px-6 py-16 justify-center">
             <View className="bg-white/12 backdrop-blur rounded-3xl p-6 border border-white/25">
-              {screen === "login" ? (
-                <LoginForm onSignupPressed={() => setScreen("signup")} />
-              ) : (
-                <SignupForm onLoginPressed={() => setScreen("login")} />
-              )}
+              <LoginForm />
             </View>
           </View>
         </ImageBackground>

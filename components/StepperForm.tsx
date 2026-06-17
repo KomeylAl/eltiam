@@ -251,7 +251,7 @@ const StepForm = ({ onSubmit }: StepFormProps) => {
                   reason,
                   so,
                   ev,
-                  bestIndex ? solutions[bestIndex].text : "",
+                  bestIndex !== null ? bestIndex : 0,
                   plan
                 );
               } catch (e) {

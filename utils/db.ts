@@ -1,9 +1,87 @@
-// database.ts
 import * as SQLite from "expo-sqlite";
 import Toast from "react-native-toast-message";
+import { api, getStoredToken } from "@/lib/api";
 
 const dbPromise = SQLite.openDatabaseAsync("eltiam.db");
-const BASE_URL = "https://soheil.ebrazclinic.ir/api";
+
+type SyncRow = Record<string, unknown>;
+
+type SyncPayload = Record<string, string | number>;
+
+const syncTables: {
+  table: string;
+  endpoint: string;
+  mapRow: (row: SyncRow) => SyncPayload;
+}[] = [
+  {
+    table: "measurements",
+    endpoint: "/measurements/sync",
+    mapRow: (row: SyncRow): SyncPayload => ({
+      date: String(row.date),
+      time: String(row.time),
+      q_number: Number(row.q_number),
+      a_number: Number(row.a_number),
+    }),
+  },
+  {
+    table: "interventions",
+    endpoint: "/interventions/sync",
+    mapRow: (row: SyncRow): SyncPayload => ({
+      date: String(row.date),
+      time: String(row.time),
+      q_number: Number(row.q_number),
+      a_number: Number(row.a_number),
+    }),
+  },
+  {
+    table: "social_problem",
+    endpoint: "/social-problems/sync",
+    mapRow: (row: SyncRow): SyncPayload => ({
+      problem: String(row.problem),
+      reason: String(row.reason ?? ""),
+      solutions: String(row.solutions ?? ""),
+      evaluations: String(row.evaluations ?? ""),
+      bestindex: parseBestIndex(row.bestindex),
+      plan: String(row.plan ?? ""),
+      date: String(row.date),
+      time: String(row.time),
+    }),
+  },
+  {
+    table: "word_game",
+    endpoint: "/word-games/sync",
+    mapRow: (row: SyncRow): SyncPayload => ({
+      point: parseInt(String(row.point), 10) || 0,
+      date: String(row.date),
+      time: String(row.time),
+    }),
+  },
+  {
+    table: "safety_plan",
+    endpoint: "/safety-plans/sync",
+    mapRow: (row: SyncRow): SyncPayload => ({
+      question_one: String(row.question_one ?? ""),
+      question_two: String(row.question_two ?? row.question_tow ?? ""),
+      thinking_feelings: String(row.thinking_feelings ?? ""),
+      self_help: String(row.self_help ?? ""),
+      others_help: String(row.others_help ?? ""),
+      close_people_list: String(row.close_people_list ?? ""),
+      close_friends_thoughts: String(row.close_friends_thoughts ?? ""),
+      phone_calls: String(row.phone_calls ?? ""),
+      protected_places: String(row.protected_places ?? ""),
+      date: String(row.date),
+      time: String(row.time),
+    }),
+  },
+];
+
+function parseBestIndex(value: unknown): number {
+  if (typeof value === "number" && !Number.isNaN(value)) {
+    return value;
+  }
+  const parsed = parseInt(String(value), 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
 
 export async function initializeDatabase() {
   const db = await dbPromise;
@@ -42,7 +120,7 @@ export async function initializeDatabase() {
       reason TEXT,
       solutions TEXT,
       evaluations TEXT,
-      bestindex TEXT,
+      bestindex INTEGER,
       plan TEXT,
       date TEXT,
       time TEXT,
@@ -62,14 +140,13 @@ export async function initializeDatabase() {
     );
   `);
 
-  await db.execAsync("DROP TABLE IF EXISTS safety_plan;");
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS safety_plan (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER,
       user_name TEXT,
-      question_one INTEGER,
-      question_tow INTEGER,
+      question_one TEXT,
+      question_two TEXT,
       thinking_feelings TEXT,
       self_help TEXT,
       others_help TEXT,
@@ -99,12 +176,6 @@ export async function insertMeasurement(
   );
 }
 
-// export async function getMeasurements(): Promise<any[]> {
-//   const db = await dbPromise;
-//   const result = await db.getAllAsync("SELECT * FROM safety_plan;");
-//   return result;
-// }
-
 export async function insertIntervention(
   date: string,
   time: string,
@@ -129,7 +200,7 @@ export async function insertSocialProblem(
   reason: string,
   solutions: string,
   evaluations: string,
-  bestindex: string,
+  bestindex: number,
   plan: string
 ) {
   const db = await dbPromise;
@@ -170,8 +241,8 @@ export async function insertSafteyPlan(
   time: string,
   userId: number,
   userName: string,
-  qOne: number,
-  qTow: number,
+  questionOne: string,
+  questionTwo: string,
   thinkingFeelings: string,
   selfHelp: string,
   othersHelp: string,
@@ -182,12 +253,12 @@ export async function insertSafteyPlan(
 ) {
   const db = await dbPromise;
   await db.runAsync(
-    "INSERT INTO safety_plan (user_id, user_name, question_one, question_tow, thinking_feelings, self_help, others_help, close_people_list, close_friends_thoughts, phone_calls, protected_places, date, time, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+    "INSERT INTO safety_plan (user_id, user_name, question_one, question_two, thinking_feelings, self_help, others_help, close_people_list, close_friends_thoughts, phone_calls, protected_places, date, time, synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
     [
       userId,
       userName,
-      qOne,
-      qTow,
+      questionOne,
+      questionTwo,
       thinkingFeelings,
       selfHelp,
       othersHelp,
@@ -202,39 +273,48 @@ export async function insertSafteyPlan(
   );
 }
 
-const syncTables = [
-  { table: "measurements", endpoint: "/measurements" },
-  { table: "word_game", endpoint: "/wordgames" },
-  { table: "interventions", endpoint: "/interventions" },
-  { table: "social_problem", endpoint: "/socialproblems" },
-  { table: "safety_plan", endpoint: "/safetyplans" },
-];
+export async function syncWithServer(options?: { showToast?: boolean }): Promise<boolean> {
+  const showToast = options?.showToast ?? false;
+  const token = await getStoredToken();
 
-export async function syncWithServer() {
+  if (!token) {
+    if (showToast) {
+      Toast.show({
+        type: "error",
+        text1: "خطا در همگام‌سازی",
+        text2: "لطفاً ابتدا وارد حساب کاربری شوید.",
+      });
+    }
+    return false;
+  }
+
   const db = await dbPromise;
   let allSynced = true;
+  let hadRecords = false;
 
-  for (const { table, endpoint } of syncTables) {
-    const unsynced = await db.getAllAsync(
+  for (const { table, endpoint, mapRow } of syncTables) {
+    const unsynced = (await db.getAllAsync(
       `SELECT * FROM ${table} WHERE synced = 0;`
-    );
+    )) as SyncRow[];
 
     if (unsynced.length === 0) continue;
 
-    try {
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ data: unsynced }),
-      });
+    hadRecords = true;
+    const payload = unsynced.map(mapRow);
+    const ids = unsynced.map((row) => row.id as number);
 
-      if (response.ok) {
-        await db.runAsync(`UPDATE ${table} SET synced = 1 WHERE synced = 0;`);
+    try {
+      const response = await api.post(endpoint, { data: payload });
+
+      if (response.data?.success) {
+        const placeholders = ids.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE ${table} SET synced = 1 WHERE id IN (${placeholders});`,
+          ids
+        );
       } else {
         allSynced = false;
-        console.error(`Sync failed for ${table}:`, await response.json());
+        console.error(`Sync failed for ${table}:`, response.data);
       }
     } catch (error) {
       allSynced = false;
@@ -242,11 +322,15 @@ export async function syncWithServer() {
     }
   }
 
-  Toast.show({
-    type: allSynced ? "success" : "error",
-    text1: allSynced ? "همگام‌سازی موفق" : "خطا در همگام‌سازی",
-    text2: allSynced
-      ? "همه جدول‌ها با موفقیت سینک شدند."
-      : "برخی از اطلاعات سینک نشدند.",
-  });
+  if (showToast && hadRecords) {
+    Toast.show({
+      type: allSynced ? "success" : "error",
+      text1: allSynced ? "همگام‌سازی موفق" : "خطا در همگام‌سازی",
+      text2: allSynced
+        ? "همه اطلاعات با موفقیت به سرور ارسال شدند."
+        : "برخی از اطلاعات ارسال نشدند. دوباره تلاش کنید.",
+    });
+  }
+
+  return allSynced;
 }

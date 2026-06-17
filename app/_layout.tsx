@@ -17,6 +17,7 @@ import { useSetupNotificationsOnce } from "@/lib/notifications";
 import { initializeDatabase, syncWithServer } from "@/utils/db";
 import { isOnline } from "@/utils/netcheck";
 import SplashLoader from "@/components/ui/SplashLoader";
+
 export default function RootLayout() {
   useSetupNotificationsOnce();
   const { checkAuth, isLoading, token } = useAuthStore();
@@ -33,34 +34,35 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    const runCheck = async () => {
+    const init = async () => {
       await initializeDatabase();
+      await checkAuth();
 
       if (await isOnline()) {
-        if (token) {
+        const currentToken = useAuthStore.getState().token;
+        if (currentToken) {
           await syncWithServer();
         }
-        // await checkAuth();
       }
     };
-    runCheck();
+
+    init();
   }, []);
 
-  // useEffect(() => {
-  //   if (token) {
-  //     router.replace("/(tabs)/measurement");
-  //   }
-  // }, [token]);
+  useEffect(() => {
+    if (!fontsLoaded || isLoading) return;
 
-  // useEffect(() => {
-  //   if (!isLoading && !token && pathname !== "/auth") {
-  //     router.replace("/auth");
-  //   }
-  // }, [isLoading, token, pathname]);
+    if (!token && pathname !== "/auth") {
+      router.replace("/auth");
+    } else if (token && pathname === "/auth") {
+      router.replace("/");
+    }
+  }, [fontsLoaded, isLoading, token, pathname]);
 
-  // if (!fontsLoaded || isLoading) {
-  //   return <SplashLoader />;
-  // }
+  if (!fontsLoaded || isLoading) {
+    return <SplashLoader />;
+  }
+
   return (
     <>
       <Stack screenOptions={{ headerShown: false }} />
@@ -109,6 +111,7 @@ export default function RootLayout() {
             </View>
           ),
         }}
-      />    </>
+      />
+    </>
   );
 }

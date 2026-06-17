@@ -1,139 +1,98 @@
 import { create } from "zustand";
-import * as SecureStore from "expo-secure-store";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
 import Toast from "react-native-toast-message";
 import { router } from "expo-router";
-
-const BASE_URL = "https://soheil.ebrazclinic.ir/api";
+import {
+  api,
+  clearStoredToken,
+  getStoredToken,
+  setStoredToken,
+} from "@/lib/api";
+import type { User } from "@/types/user";
 
 interface AuthState {
-  user: null | {
-    id: number;
-    phone: string;
-    name: string;
-    national_code: string;
-    created_at: string | number | Date;
-  };
+  user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (phone: string, password: string) => Promise<void>;
+  login: (phone: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  register: (
-    phone: string,
-    password: string,
-    name: string,
-    national_code: string
-  ) => Promise<void>;
   checkAuth: () => Promise<void>;
+  hydrateToken: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   token: null,
   isLoading: true,
 
-  login: async (phone, password) => {
-    await axios
-      .post(`${BASE_URL}/login`, {
-        phone,
-        password,
-      })
-      .then(async (response) => {
-        if (response.status === 200) {
-          const token = response.data.access_token;
-          await SecureStore.setItemAsync("token", token);
+  hydrateToken: async () => {
+    const token = await getStoredToken();
+    set({ token });
+  },
 
-          set({ token, user: response.data.user, isLoading: false });
-          router.replace("/");
-        }
-      })
-      .catch((error) => {
-        if (error.status === 401) {
-          Toast.show({
-            type: "error",
-            text1: "خطا!",
-            text2: "نام کاربری یا رمز عبور اشتباه است.",
-          });
-          return;
-        }
+  login: async (phone, password) => {
+    try {
+      const response = await api.post("/auth/login", { phone, password });
+
+      const token = response.data.token as string;
+      const user = response.data.user as User;
+
+      await setStoredToken(token);
+      set({ token, user, isLoading: false });
+      router.replace("/");
+      return true;
+    } catch (error) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      const status = axiosError.response?.status;
+
+      if (status === 422 || status === 401) {
+        Toast.show({
+          type: "error",
+          text1: "خطا!",
+          text2: "شماره تلفن یا رمز عبور اشتباه است.",
+        });
+      } else {
         Toast.show({
           type: "error",
           text1: "خطا!",
           text2: "اتصال به سرور برقرار نشد.",
         });
-      });
+      }
+      return false;
+    }
   },
 
   logout: async () => {
-    await SecureStore.deleteItemAsync("token");
+    const token = get().token ?? (await getStoredToken());
+
+    if (token) {
+      try {
+        await api.post("/auth/logout");
+      } catch {
+        // Local logout even if server revoke fails
+      }
+    }
+
+    await clearStoredToken();
     set({ token: null, user: null });
     router.replace("/auth");
   },
 
-  register: async (phone, password, national_code, name) => {
-    console.log(national_code);
-
-    await axios
-      .post(
-        `${BASE_URL}/register`,
-        {
-          phone,
-          password,
-          national_code,
-          name,
-        },
-        {
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then(async (response) => {
-        if (response.status === 201) {
-          const token = response.data.access_token;
-          await SecureStore.setItemAsync("token", token);
-
-          set({ token, user: response.data.user, isLoading: false });
-        } else {
-          Toast.show({
-            type: "error",
-            text1: "خطا!",
-            text2: "خطا در ثبت نام.",
-          });
-        }
-      })
-      .catch((error: AxiosError) => {
-        Toast.show({
-          type: "error",
-          text1: "خطا!",
-          text2: "خطا در اتصال به سرور.",
-        });
-        console.log(error.response?.data);
-      });
-  },
-
   checkAuth: async () => {
-    const token = await SecureStore.getItemAsync("token");
+    const token = await getStoredToken();
 
     if (!token) {
-      return set({ isLoading: false, token: null, user: null });
+      set({ isLoading: false, token: null, user: null });
+      return;
     }
 
     try {
-      const res = await axios.get(`${BASE_URL}/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-
-      set({ token, user: res.data, isLoading: false });
-    } catch (err) {
-      console.log("errrrr:" + err);
-      await SecureStore.deleteItemAsync("token");
-      set({ token: null, user: null, isLoading: false }); // 👈 حتما اینو ست کن
+      const res = await api.get("/auth/me");
+      const user = res.data.data as User;
+      set({ token, user, isLoading: false });
+    } catch {
+      await clearStoredToken();
+      set({ token: null, user: null, isLoading: false });
     }
   },
 }));

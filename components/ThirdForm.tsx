@@ -11,6 +11,11 @@ import { Checkbox } from "react-native-paper";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { insertSafteyPlan } from "@/utils/db";
 
+const SAFETY_CHECK_ONE =
+  "مطمئنم که همه لوازم خطرناک از من دور هستند";
+const SAFETY_CHECK_TWO =
+  "بعد از اتمام این بحران، باید به روانشناس یا مشاور مراجعه کنم";
+
 const ThirdForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const { user } = useAuthStore();
 
@@ -48,8 +53,8 @@ const ThirdForm = ({ onSuccess }: { onSuccess: () => void }) => {
         `${new Date().getHours()}:${new Date().getMinutes()}`,
         user?.id ?? 0,
         user?.name ?? "",
-        isSelected ? 1 : 0,
-        isSecondSelected ? 1 : 0,
+        isSelected ? SAFETY_CHECK_ONE : "",
+        isSecondSelected ? SAFETY_CHECK_TWO : "",
         thinkingFeelings,
         selfHelp,
         othersHelp,
